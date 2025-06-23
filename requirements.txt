@@ -1,0 +1,10 @@
+torch>=1.7.0
+torchvision>=0.8.1
+flask>=2.0.0
+pillow>=8.0.0
+numpy>=1.19.0
+timm>=0.4.12
+opencv-python-headless>=4.5.0
+rawpy>=0.17.0
+matplotlib>=3.3.0
+scikit-image>=0.17.0 

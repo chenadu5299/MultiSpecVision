@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Channel MultiSpecVision Image Segmentation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .upload-area:hover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+        
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .image-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .image-container {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .image-container h4 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 15px;
+            background: #ffe6e6;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #27ae60;
+            text-align: center;
+            padding: 15px;
+            background: #e6ffe6;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .status-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            color: #856404;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-display {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multi-Channel MultiSpecVision Image Segmentation</h1>
+        
+        <div class="section">
+            <h3>1. Upload Multi-Channel Image</h3>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-text">Click to select image or drag image here</div>
+                <div style="color: #999; font-size: 14px;">Supports JPG, PNG, TIFF, NPY formats (3-20 channels supported)</div>
+                <input type="file" id="fileInput" class="file-input" accept="image/*,.npy,.tiff,.tif">
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>2. Parameter Configuration</h3>
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="channelType">Imaging Type</label>
+                    <select id="channelType">
+                        <option value="rgb">RGB (3 channels)</option>
+                        <option value="rgb_ir">RGB+Infrared (4 channels)</option>
+                        <option value="multispectral">Multispectral (8 channels)</option>
+                        <option value="hyperspectral">Hyperspectral (16 channels)</option>
+                        <option value="thermal">Thermal Imaging (1 channel)</option>
+                        <option value="xray">X-ray Imaging (1 channel)</option>
+                        <option value="custom">Custom Channel Count</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="customChannels">Custom Channel Count</label>
+                    <input type="number" id="customChannels" min="1" max="20" value="3" disabled>
+                </div>
+                
+                <div class="control-group">
+                    <label for="taskType">Segmentation Task</label>
+                    <select id="taskType">
+                        <option value="semantic">Semantic Segmentation</option>
+                        <option value="instance">Instance Segmentation</option>
+                        <option value="panoptic">Panoptic Segmentation</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="numClasses">Number of Classes</label>
+                    <input type="number" id="numClasses" min="2" max="1000" value="21">
+                </div>
+                
+                <div class="control-group">
+                    <label for="confidenceThreshold">Confidence Threshold</label>
+                    <input type="range" id="confidenceThreshold" min="0.1" max="1.0" step="0.1" value="0.5">
+                    <span id="confidenceValue">0.5</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section" style="text-align: center;">
+            <button class="btn" onclick="document.getElementById('fileInput').click()">Select Image</button>
+            <button class="btn" id="processBtn" onclick="processImage()" disabled>Start Segmentation</button>
+            <button class="btn" onclick="downloadResults()" id="downloadBtn" disabled>Download Results</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            Processing image, please wait...
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+        
+        <div id="statusInfo" class="status-info" style="display: none;"></div>
+        
+        <div id="results" style="display: none;">
+            <div class="section">
+                <h3>3. Segmentation Results</h3>
+                <div class="image-display" id="imageDisplay"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let resultData = null;
+        
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const processBtn = document.getElementById('processBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const success = document.getElementById('success');
+        const results = document.getElementById('results');
+        const imageDisplay = document.getElementById('imageDisplay');
+        const statusInfo = document.getElementById('statusInfo');
+        
+        const channelType = document.getElementById('channelType');
+        const customChannels = document.getElementById('customChannels');
+        const confidenceThreshold = document.getElementById('confidenceThreshold');
+        const confidenceValue = document.getElementById('confidenceValue');
+
+        // Event listeners
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        channelType.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customChannels.disabled = false;
+            } else {
+                customChannels.disabled = true;
+                // Automatically set channel count
+                const channelMap = {
+                    'rgb': 3,
+                    'rgb_ir': 4,
+                    'multispectral': 8,
+                    'hyperspectral': 16,
+                    'thermal': 1,
+                    'xray': 1
+                };
+                customChannels.value = channelMap[this.value] || 3;
+            }
+        });
+        
+        confidenceThreshold.addEventListener('input', function() {
+            confidenceValue.textContent = this.value;
+        });
+        
+        // Drag and drop handling
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                processBtn.disabled = false;
+                
+                // Update upload area text
+                uploadArea.querySelector('.upload-text').textContent = `Selected: ${file.name}`;
+                
+                // Show file information
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                statusInfo.textContent = `File: ${file.name} (${fileSize} MB)`;
+                statusInfo.style.display = 'block';
+                
+                // Hide previous results
+                results.style.display = 'none';
+                error.style.display = 'none';
+                success.style.display = 'none';
+                downloadBtn.disabled = true;
+            }
+        }
+
+        function processImage() {
+            if (!selectedFile) {
+                showError('Please select an image first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('channel_type', channelType.value);
+            formData.append('num_channels', customChannels.value);
+            formData.append('task_type', document.getElementById('taskType').value);
+            formData.append('num_classes', document.getElementById('numClasses').value);
+            formData.append('confidence_threshold', confidenceThreshold.value);
+
+            // Show loading state
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            success.style.display = 'none';
+            results.style.display = 'none';
+            processBtn.disabled = true;
+
+            fetch('/segment', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                processBtn.disabled = false;
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showResults(data);
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                processBtn.disabled = false;
+                showError('Network error, please try again');
+                console.error('Error:', err);
+            });
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+            success.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            success.textContent = message;
+            success.style.display = 'block';
+            error.style.display = 'none';
+        }
+
+        function showResults(data) {
+            resultData = data;
+            imageDisplay.innerHTML = '';
+            
+            // Create image containers
+            const containers = [
+                { title: 'Original Image', key: 'original_image' },
+                { title: 'Segmentation Mask', key: 'segmentation_mask' },
+                { title: 'Overlay Result', key: 'overlay_result' }
+            ];
+            
+            containers.forEach(container => {
+                if (data[container.key]) {
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'image-container';
+                    
+                    imageContainer.innerHTML = `
+                        <h4>${container.title}</h4>
+                        <img src="data:image/png;base64,${data[container.key]}" 
+                             alt="${container.title}" class="image-preview">
+                    `;
+                    
+                    imageDisplay.appendChild(imageContainer);
+                }
+            });
+            
+            // Show statistics if available
+            if (data.statistics) {
+                const statsContainer = document.createElement('div');
+                statsContainer.className = 'image-container';
+                statsContainer.innerHTML = `
+                    <h4>Segmentation Statistics</h4>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${data.statistics.num_classes || 'N/A'}</div>
+                            <div class="stat-label">Classes Found</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${data.statistics.processing_time || 'N/A'}s</div>
+                            <div class="stat-label">Processing Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${data.statistics.image_size || 'N/A'}</div>
+                            <div class="stat-label">Image Size</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${data.statistics.channels || 'N/A'}</div>
+                            <div class="stat-label">Input Channels</div>
+                        </div>
+                    </div>
+                `;
+                imageDisplay.appendChild(statsContainer);
+            }
+            
+            results.style.display = 'block';
+            downloadBtn.disabled = false;
+            showSuccess('Segmentation completed successfully!');
+        }
+
+        function downloadResults() {
+            if (!resultData) {
+                showError('No results to download');
+                return;
+            }
+            
+            // Create download links for all result images
+            const downloadLinks = [
+                { name: 'segmentation_mask.png', data: resultData.segmentation_mask },
+                { name: 'overlay_result.png', data: resultData.overlay_result }
+            ];
+            
+            downloadLinks.forEach(link => {
+                if (link.data) {
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = `data:image/png;base64,${link.data}`;
+                    downloadLink.download = link.name;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                }
+            });
+            
+            showSuccess('Results downloaded successfully!');
+        }
+    </script>
+</body>
+</html> 

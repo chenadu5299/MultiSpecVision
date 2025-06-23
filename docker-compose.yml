@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  multi-channel-swin:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1 
